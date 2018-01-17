@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import { IProduct } from './product';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, ObservableInput } from 'rxjs/Observable';
+import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/throw';
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/do';
@@ -10,23 +10,23 @@ import 'rxjs/add/operator/do';
 export class ProductService {
   private _productUrl = './api/products/products.json';
   constructor(private _http: HttpClient) {}
+
+  private static handleError(err: HttpErrorResponse) {
+    return Observable.throw(err.message);
+  }
+
   getProducts(): Observable<IProduct[]> {
     return this._http.get<IProduct[]>(this._productUrl)
-      .do(data => console.log('All:' + JSON.stringify(data)))
-      .catch(this.handleError);
+      // .do(data => console.log('All:' + JSON.stringify(data)))
+      .catch(ProductService.handleError);
   }
 
-  getProduct(productId: number): Observable<IProduct> {
-    var currentproducts: IProduct[];
-    var product: IProduct;
+  getProduct(productId: number, callback: (product: IProduct) => void): void {
     this.getProducts().subscribe(
-      products => currentproducts = products,
-      error => {},
-      completed => product = currentproducts.find(() => { return true;}, productId)
+      products => {
+        // TODO: add code to handle if no matching product is found.
+        callback(products.find(p => p.productId === productId));
+      }
     );
-  }
-
-  private handleError(err: HttpErrorResponse) {
-    return Observable.throw(err.message);
   }
 }
